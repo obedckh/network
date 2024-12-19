@@ -1,5 +1,104 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    TODO
+    <div class="container mt-3 mb-3">
+        <div class="card border-0">
+            <h3 id="viewportTitle"></h3>
+        </div>
+    </div>
+
+    
+    {% if user.is_authenticated %}
+    <div id="edit-view">
+        <div class="container">
+            editing post
+        </div>
+    
+    </div>
+
+    
+    <div id="profile-view">
+        <div>
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <h1 id="profile-username"></h1>
+                    </div>
+                </div>
+
+                <div id="follow-div">
+                    <div class="row d-flex justify-content-start">
+                        <div class="col-3">
+                            <p>follow-div TODO</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row d-flex justify-content-center">
+                    <div class="col-3">
+                        <div class="card border-0">
+                            <div class="card-body">
+                                <h5 class="text-center" id="post-number"></h5>
+                                <h6 class="text-center">Post</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="card border-0">
+                            <div class="card-body">
+                                <h5 class="text-center" id="follower-number"></h5>
+                                <h6 class="text-center">followers</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="card border-0">
+                            <div class="card-body">
+                                <h5 class="text-center" id="following-number"></h5>
+                                <h6 class="text-center">following</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
+    <div id="posts-view">
+        <div id="create-div">
+            {% if user.is_authenticated %}
+                <div class="container">
+                    <div class="card">
+                        <div class="card-body">
+                            <form action="{% url 'create' %}" method="post">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label class="form-label" for="newpost">New Post</label>
+                                    <textarea class="form-control" name="newpost" id="newpost" rows="4" col="50" placeholder="What's in your mind..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Post</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+        </div>
+
+        <div class="container" id="post-div">
+            
+        </div>
+    </div>
+    {% if user.is_authenticated %}
+    <script> const currentUserId = {{ user.id }}; </script>
+    {% else %}
+    <script> const currentUserId = null; </script>
+    {% endif %}
+    <script>const isAuthenticated = {{ is_authenticated|yesno:"true,false" }};</script>
+
+
+
 {% endblock %}
