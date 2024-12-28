@@ -9,14 +9,6 @@
 
     
     {% if user.is_authenticated %}
-    <div id="edit-view">
-        <div class="container">
-            editing post
-        </div>
-    
-    </div>
-
-    
     <div id="profile-view">
         <div>
             <div class="container">
@@ -29,7 +21,7 @@
                 <div id="follow-div">
                     <div class="row d-flex justify-content-start">
                         <div class="col-3">
-                            <p>follow-div TODO</p>
+                            
                         </div>
                     </div>
                 </div>
@@ -90,6 +82,14 @@
 
         <div class="container" id="post-div">
             
+        </div>
+        <div class="d-flex justify-content-center mt-5" id="pagination-div">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                  <li class="page-item" id="previous"><a class="page-link" href="#">Previous</a></li>
+                  <li class="page-item" id="next"><a class="page-link" href="#">Next</a></li>
+                </ul>
+              </nav>
         </div>
     </div>
     {% if user.is_authenticated %}
