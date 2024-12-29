@@ -5,19 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django import forms
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 
 
 from .models import User, Post
 
-class CreateForm(forms.Form):
-    new_post_form = forms.CharField(label="New Post", required=True, widget=forms.Textarea(attrs={
-        'rows': 2,
-        'cols': 50,
-        'placeholder': "What's in your mind..."
-    }))
 
 def index(request):
     return render(request, 'network/index.html',{
@@ -42,7 +35,7 @@ def post(request):
 def get_post(request, post_id):
     try:
         post = Post.objects.get(id=int(post_id))
-        print(post.serialize())
+        #print(post.serialize())
         return JsonResponse(post.serialize(), safe=False)
     except Exception as e:
         error = f"error: {e}"
@@ -159,7 +152,7 @@ def get_profile_info(request, user_id):
     try:
         user_id = int(user_id)
         user_info = User.objects.filter(id=user_id)
-        print("get_profile_info()  - user_info: ", user_info)
+        #print("get_profile_info()  - user_info: ", user_info)
         return JsonResponse([user.serialize() for user in user_info], safe=False)
     except Exception as e:
         print(f"error: {e}")
@@ -172,7 +165,7 @@ def follow_user(request, user_id):
         user_to_follow = User.objects.get(id=int(user_id))
         follower = User.objects.get(id=int(request.user.id))
         user_to_follow.followers.add(follower)
-        print("1", user_to_follow.followers)
+        #print("1", user_to_follow.followers)
         return JsonResponse({"message": "Followed successfully"}, status=200)
     except Exception as e:
         error = f"error: {e}"
@@ -185,7 +178,7 @@ def unfollow_user(request, user_id):
         user_to_unfollow = User.objects.get(id=int(user_id))
         unfollower = User.objects.get(id=int(request.user.id))
         user_to_unfollow.followers.remove(unfollower)
-        print("2", user_to_unfollow.followers)
+        #print("2", user_to_unfollow.followers)
         return JsonResponse({"message": "Unfollowed successfully"}, status=200)
     except Exception as e:
         error = f"error: {e}"
@@ -196,11 +189,11 @@ def unfollow_user(request, user_id):
 @login_required
 @csrf_exempt
 def update_post(request, post_id):
-    print("Request received")  # Add this line
+    #print("Request received")
     if request.method == 'POST':
         data = json.loads(request.body)
         mode = data.get('mode')
-        print(mode)
+        #print(mode)
         
         try:
             current_user = User.objects.get(id=request.user.id)
@@ -210,13 +203,13 @@ def update_post(request, post_id):
                 content = content.lstrip()
                 post.post_content = content
             elif mode == 'like':
-                print("mode = like")
+                #print("mode = like")
                 try:
                     post.likes.add(current_user)
                 except Exception as e:
                     print(f"update_post() like post - error: {e}")   
             elif mode == 'unlike':
-                print("mode = unlike")
+                #print("mode = unlike")
                 try:
                     post.likes.remove(current_user)
                 except Exception as e:
@@ -224,7 +217,7 @@ def update_post(request, post_id):
 
             post.save()
             response = JsonResponse({'success': True})
-            print(response)  # Log the response
+            #print(response)
             return response
         except Post.DoesNotExist:
             return JsonResponse({'error': 'Post not found'}, status=404)

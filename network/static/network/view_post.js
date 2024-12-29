@@ -13,8 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    
-    //load_post_viewport('allpost');
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get('view') || 'allpost';
     load_post_viewport(view, 1);
@@ -29,8 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.message) {
-                    console.log(data.message);
-                    console.log('Calling load_profile after follow/unfollow');
+                    //console.log(data.message);
+                    //console.log('Calling load_profile after follow/unfollow');
                     load_profile(userId);
                 } else if (data.error) {
                     console.error(data.error);
@@ -50,11 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // return single post as object by given post_id
 async function get_post_obj(post_id) {
-    console.log(`get_post_obj() fetching getpost/${parseInt(post_id, 10)}`);
+    //console.log(`get_post_obj() fetching getpost/${parseInt(post_id, 10)}`);
     try {
         const response = await fetch(`getpost/${parseInt(post_id, 10)}`);
         const post_obj = await response.json();
-        console.log(post_obj);
+        //console.log(post_obj);
         return post_obj;
     } catch (error) {
         console.error('Error:', error);
@@ -80,18 +78,16 @@ async function update_post(element, mode){
         return cookieValue;
     }
     if(isAuthenticated){
-        console.log("Element:", element);
-        console.log("Parent Element ID:", element.parentElement.id);
+        //console.log("Element:", element);
+        //console.log("Parent Element ID:", element.parentElement.id);
 
         const post_id = parseInt(element.parentElement.id, 10);
         const post_card_body_div = element.parentElement;
         const postContentElement = post_card_body_div.querySelector('#post_content');
         const editBtnElement = post_card_body_div.querySelector('#edit_btn');
         const likeBtnElement = post_card_body_div.querySelector('#like_count');
-        const likeCountElement = post_card_body_div.querySelector('#like_btn');
-        const likeBtnDiv = post_card_body_div.querySelector('#like_div');
 
-        console.log('update_post function', post_id, post_card_body_div);
+        //console.log('update_post function', post_id, post_card_body_div);
         if (mode === 'edit'){
             const originalContent = postContentElement.innerHTML;
             editBtnElement.style.display = "none";
@@ -110,7 +106,7 @@ async function update_post(element, mode){
             document.getElementById('editForm').addEventListener('submit', event => {
                 event.preventDefault();
                 const updatedContent = document.getElementById('editpost').value;
-                console.log(post_id, mode, updatedContent);
+                //console.log(post_id, mode, updatedContent);
                 fetch(`/update_post/${post_id}`, {
                     method: 'POST',
                     headers: {
@@ -138,7 +134,7 @@ async function update_post(element, mode){
             });
         }
         else if (mode === 'like'){
-            console.log(post_id, "type of post id: ", typeof(post_id));
+            //console.log(post_id, "type of post id: ", typeof(post_id));
             fetch(`/update_post/${post_id}`, {
                 method: 'POST',
                 headers: {
@@ -152,10 +148,10 @@ async function update_post(element, mode){
             .then(response => response.json())
             .then(async data => {
                 if (data.success) {
-                    console.log("update_post() called return success")
+                    //console.log("update_post() called return success")
                     const post_obj = await get_post_obj(post_id);
                     likeBtnElement.innerHTML = "";
-                    console.log(post_obj.likes);
+                    //console.log(post_obj.likes);
                     likeBtnElement.innerHTML = `❤️ ${post_obj.likes}`;
                     if (post_obj.liked_user && post_obj.liked_user.includes(currentUserId)) {
                         element.innerHTML = "Unlike";
@@ -181,7 +177,7 @@ function get_profile_info(id){
     fetch(`profileInfo/${id}`)
     .then(response => response.json())
     .then(user_info => {
-        console.log('get_profile_info called', user_info);
+        //console.log('get_profile_info called', user_info);
         document.querySelector('#follow-div').style.display = 'none';
         document.querySelector('#profile-username').innerHTML = "";
         document.querySelector('#post-number').innerHTML = "";
@@ -200,14 +196,12 @@ function get_profile_info(id){
             document.querySelector('#create-div').style.display = 'none';
             //console.log("Showing follow-div");
             document.querySelector('#follow-div').style.display = 'block';
-            console.log("following: ",user_info[0].following_id);
+            //console.log("following: ",user_info[0].following_id);
             
             //render follow button according to follow status
-            console.log("get_profile_info() user_info[0]", user_info[0]);
+            //console.log("get_profile_info() user_info[0]", user_info[0]);
             show_follow_status(user_info[0]);
         }
-        
-
     })
     .catch(error => {
         console.error('Error:', error);
@@ -216,17 +210,17 @@ function get_profile_info(id){
 
 
 function show_follow_status(user_object) {
-    console.log('show follow status()', user_object);
+    //console.log('show follow status()', user_object);
     let followDiv = document.querySelector('#follow-div .col-3');
     followDiv.innerHTML = "";
     let followBtnDiv = document.createElement('div');
     let followBtn = "";
-    console.log(user_object.following_id);
+    //console.log(user_object.following_id);
     if (user_object.following_id.includes(currentUserId)) {
-        console.log('following this user');
+        //console.log('following this user');
         followBtn = `<button class="btn btn-light" id="unfollowBtn" data-user-id="${user_object.id}">Unfollow</button>`;
     } else {
-        console.log('not following this user');
+        //console.log('not following this user');
         followBtn = `<button class="btn btn-light" id="followBtn" data-user-id="${user_object.id}">Follow</button>`;
     }
 
@@ -238,11 +232,11 @@ function load_profile(user_id){
 
     //fetch profile
     function get_profile(id, page = 1){
-        console.log(`Fetching URL: user/${id}?page=${page}`);
+        //console.log(`Fetching URL: user/${id}?page=${page}`);
         fetch(`post/${id}?page=${page}`)
         .then(response => response.json())
         .then(data => {
-            console.log(data.posts);
+            //console.log(data.posts);
             render_post(data.posts);
             setup_pagination(data, `${id}`);
             
@@ -252,14 +246,14 @@ function load_profile(user_id){
         });
     }
 
-    console.log('2 - load profile - show/ hide views')
+    //console.log('2 - load profile - show/ hide views')
     document.querySelector('#viewportTitle').innerHTML = "";
     if (isAuthenticated){
         //document.querySelector('#edit-view').style.display = 'none';
         document.querySelector('#profile-view').style.display = 'block';        
     }
     document.querySelector('#posts-view').style.display = 'block';
-    console.log('profile view')
+    //console.log('profile view')
     get_profile_info(user_id);
     get_profile(user_id, 1);
 
@@ -267,13 +261,13 @@ function load_profile(user_id){
 
 // clear post-div.innerHtml and then render correct contents
 function render_post(posts){
-	console.log('1 start render post')
+	//console.log('1 start render post')
 	const post_view = document.querySelector('#post-div');
 	post_view.innerHTML = '';
 	let allPosts = [];
 	allPosts = posts;
 	if (allPosts.length > 0){
-		console.log('2 there are post to render')
+		//console.log('2 there are post to render')
 		for (let i = 0; i< allPosts.length; i++){
 			const post_object = allPosts[i];
 			const post_div = document.createElement('div');
@@ -282,7 +276,7 @@ function render_post(posts){
 		}
 	}
 	else if (allPosts.length === 0){
-		console.log('3 NO post to render')
+		//console.log('3 NO post to render')
 		const post_div = document.createElement('div');
 		post_div.innerHTML = `<div class="card border-0">
 				<div class="card-body">
@@ -309,11 +303,11 @@ function render_post(posts){
 
 // fetch correspinding urls from views.py
 function fetch_post(view, page = 1){    
-    console.log(`Fetching URL: post/${view}?page=${page}`);
+    //console.log(`Fetching URL: post/${view}?page=${page}`);
     fetch(`/post/${view}?page=${page}`)
     .then(response => response.json())
     .then(data => {
-        console.log(data.posts);
+        //console.log(data.posts);
         render_post(data.posts);
         setup_pagination(data, view);        
     })
@@ -323,7 +317,7 @@ function fetch_post(view, page = 1){
 }
 
 function setup_pagination(data, view) {
-    console.log(view);
+    //console.log(view);
     const pagination_div = document.querySelector('#pagination-div');
     const prev_button = document.querySelector('#previous');
     const next_button = document.querySelector('#next');
@@ -397,7 +391,7 @@ function construct_post_div(post_object){
 function load_post_viewport(viewport, page = 1){
 
     // show/hide appropriate view div
-    console.log('1 - show/ hide views')
+    //console.log('1 - show/ hide views')
     if (isAuthenticated){
         //document.querySelector('#edit-view').style.display = 'none';
         document.querySelector('#profile-view').style.display = 'none';
@@ -409,12 +403,12 @@ function load_post_viewport(viewport, page = 1){
 
     if (viewport === 'allpost'){
         document.querySelector('#viewportTitle').innerHTML = "All Post";
-        console.log('all post view')
+        //console.log('all post view')
         fetch_post('allpost', page);
     } 
     else if (viewport === 'following'){
         document.querySelector('#viewportTitle').innerHTML = "Following";
-        console.log('following post view')
+        //console.log('following post view')
         fetch_post('following', page);
         
 
