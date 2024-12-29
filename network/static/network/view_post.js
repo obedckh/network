@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelector('#allPost').addEventListener('click', () => load_post_viewport('allpost'));
+    
     if (isAuthenticated){
         document.querySelector('#following').addEventListener('click', (event) => {
             event.preventDefault();
@@ -11,12 +12,12 @@ document.addEventListener('DOMContentLoaded', function() {
             load_profile(user_id)
         });
     }
+    
+    
     //load_post_viewport('allpost');
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get('view') || 'allpost';
     load_post_viewport(view, 1);
-
-    
 
     document.addEventListener('click', event => {
         const element = event.target;
@@ -78,38 +79,66 @@ async function update_post(element, mode){
         }
         return cookieValue;
     }
+    if(isAuthenticated){
+        console.log("Element:", element);
+        console.log("Parent Element ID:", element.parentElement.id);
 
-    console.log("Element:", element);
-    console.log("Parent Element ID:", element.parentElement.id);
+        const post_id = parseInt(element.parentElement.id, 10);
+        const post_card_body_div = element.parentElement;
+        const postContentElement = post_card_body_div.querySelector('#post_content');
+        const editBtnElement = post_card_body_div.querySelector('#edit_btn');
+        const likeBtnElement = post_card_body_div.querySelector('#like_count');
+        const likeCountElement = post_card_body_div.querySelector('#like_btn');
+        const likeBtnDiv = post_card_body_div.querySelector('#like_div');
 
-    const post_id = parseInt(element.parentElement.id, 10);
-    const post_card_body_div = element.parentElement;
-    const postContentElement = post_card_body_div.querySelector('#post_content');
-    const editBtnElement = post_card_body_div.querySelector('#edit_btn');
-    const likeBtnElement = post_card_body_div.querySelector('#like_count');
-    const likeCountElement = post_card_body_div.querySelector('#like_btn');
-    const likeBtnDiv = post_card_body_div.querySelector('#like_div');
+        console.log('update_post function', post_id, post_card_body_div);
+        if (mode === 'edit'){
+            const originalContent = postContentElement.innerHTML;
+            editBtnElement.style.display = "none";
+            postContentElement.innerHTML="";
+            let editContentDiv = document.createElement('div');
+            editContentDiv.innerHTML = `
+                <form id="editForm">
+                <div class="form-group">
+                <textarea class="form-control" name="editpost" id="editpost" rows="1">${originalContent}</textarea>
+                </div>
+                <button type="submit" class="btn btn-outline-primary">Save</button>
+                </form>
+                `
+            postContentElement.append(editContentDiv);
 
-    console.log('update_post function', post_id, post_card_body_div);
-    if (mode === 'edit'){
-        const originalContent = postContentElement.innerHTML;
-        editBtnElement.style.display = "none";
-        postContentElement.innerHTML="";
-        let editContentDiv = document.createElement('div');
-        editContentDiv.innerHTML = `
-            <form id="editForm">
-            <div class="form-group">
-            <textarea class="form-control" name="editpost" id="editpost" rows="1">${originalContent}</textarea>
-            </div>
-            <button type="submit" class="btn btn-outline-primary">Save</button>
-            </form>
-            `
-        postContentElement.append(editContentDiv);
-
-        document.getElementById('editForm').addEventListener('submit', event => {
-            event.preventDefault();
-            const updatedContent = document.getElementById('editpost').value;
-            console.log(post_id, mode, updatedContent);
+            document.getElementById('editForm').addEventListener('submit', event => {
+                event.preventDefault();
+                const updatedContent = document.getElementById('editpost').value;
+                console.log(post_id, mode, updatedContent);
+                fetch(`/update_post/${post_id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') // Include CSRF token
+                    },
+                    body: JSON.stringify({
+                        content: updatedContent,
+                        mode: mode
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        editBtnElement.style.display = "block";
+                        postContentElement.innerHTML = updatedContent;
+                    } else {
+                        console.error(data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        
+            });
+        }
+        else if (mode === 'like'){
+            console.log(post_id, "type of post id: ", typeof(post_id));
             fetch(`/update_post/${post_id}`, {
                 method: 'POST',
                 headers: {
@@ -117,15 +146,24 @@ async function update_post(element, mode){
                     'X-CSRFToken': getCookie('csrftoken') // Include CSRF token
                 },
                 body: JSON.stringify({
-                    content: updatedContent,
-                    mode: mode
+                    mode: element.getAttribute('data-action')
                 })
             })
             .then(response => response.json())
-            .then(data => {
+            .then(async data => {
                 if (data.success) {
-                    editBtnElement.style.display = "block";
-                    postContentElement.innerHTML = updatedContent;
+                    console.log("update_post() called return success")
+                    const post_obj = await get_post_obj(post_id);
+                    likeBtnElement.innerHTML = "";
+                    console.log(post_obj.likes);
+                    likeBtnElement.innerHTML = `❤️ ${post_obj.likes}`;
+                    if (post_obj.liked_user && post_obj.liked_user.includes(currentUserId)) {
+                        element.innerHTML = "Unlike";
+                        element.setAttribute('data-action', 'unlike');
+                    } else {
+                        element.innerHTML = "Like";
+                        element.setAttribute('data-action', 'like');
+                    }
                 } else {
                     console.error(data.error);
                 }
@@ -133,43 +171,7 @@ async function update_post(element, mode){
             .catch(error => {
                 console.error('Error:', error);
             });
-    
-        });
-    }
-    else if (mode === 'like'){
-        console.log(post_id, "type of post id: ", typeof(post_id));
-        fetch(`/update_post/${post_id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') // Include CSRF token
-            },
-            body: JSON.stringify({
-                mode: element.getAttribute('data-action')
-            })
-        })
-        .then(response => response.json())
-        .then(async data => {
-            if (data.success) {
-                console.log("update_post() called return success")
-                const post_obj = await get_post_obj(post_id);
-                likeBtnElement.innerHTML = "";
-                console.log(post_obj.likes);
-                likeBtnElement.innerHTML = `❤️ ${post_obj.likes}`;
-                if (post_obj.liked_user && post_obj.liked_user.includes(currentUserId)) {
-                    element.innerHTML = "Unlike";
-                    element.setAttribute('data-action', 'unlike');
-                } else {
-                    element.innerHTML = "Like";
-                    element.setAttribute('data-action', 'like');
-                }
-            } else {
-                console.error(data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        }
     }
 }
 
@@ -289,6 +291,8 @@ function render_post(posts){
 			</div>`;
 		post_view.append(post_div);
 	}
+    
+    
 
 
     // Add event listeners after posts are rendered
@@ -361,18 +365,24 @@ function construct_post_div(post_object){
     let likeButton = '';
     let likeBtn = `<a id="like_btn" href="javascript:void(0);" data-action="like">Like</a>`;
     let unlikeBtn = `<a id="like_btn" href="javascript:void(0);" data-action="unlike">Unlike</a>`;
-    likeButton = likeBtn;
-    
-    if (post_object.liked_user !== null) {
-        if (post_object.liked_user.includes(currentUserId)){
-            
-            likeButton = unlikeBtn;
+
+    let userButton = `<h6><b>${post_object.post_owner}</b></h6>`;
+
+    if (isAuthenticated){
+        likeButton = likeBtn;
+        if (post_object.liked_user !== null) {
+            if (post_object.liked_user.includes(currentUserId)){
+                likeButton = unlikeBtn;
+            }
         }
+        userButton = `<h6><b><a href="" id="user-profile-btn" data-owner-id="${post_object.owner_id}">${post_object.post_owner}</a></b></h6>`;
+        
     }
+    
     return(`
         <div class="card mt-3">
             <div class="card-body" id="${post_object.id}">
-                <h6><b><a href="" id="user-profile-btn" data-owner-id="${post_object.owner_id}">${post_object.post_owner}</a></b></h6>
+                ${userButton}
                 <h6 id="post_content"> ${post_object.content}</h6>
                 ${editButton}
                 <p class="grey_text"> ${post_object.timestamp}</p>
